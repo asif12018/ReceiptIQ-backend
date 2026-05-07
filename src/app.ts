@@ -28,6 +28,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Root Route
+app.get("/", (req, res) => {
+  res.send("ReceiptIQ Backend is running!");
+});
+
 // Global Router
 app.use("/api/v1", router);
 
