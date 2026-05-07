@@ -1,0 +1,118 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+enum Role { 
+  USER 
+  ADMIN 
+}
+
+enum OccupationCategory {
+  JOB_HOLDER
+  STUDENT
+  SOFTWARE_ENGINEER
+  FREELANCER
+  OTHER
+}
+
+model User {
+  id               String               @id @default(uuid())
+  email            String               @unique
+  name             String?
+  avatarUrl        String?              // Cloudinary URL
+  image            String?
+  emailVerified    Boolean              @default(false)
+  role             Role                 @default(USER)
+  gender           String               @default("MALE")
+  banned           Boolean              @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  occupation       OccupationCategory?
+  monthlyIncome    Float?
+  monthlyBudget    Float?
+  receipts         Receipt[]
+  goals            Goal[]
+  sessions         Session[]
+  accounts         Account[]
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  id         String    @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+}
+
+
+model Goal {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+  title          String    // e.g., "Motorcycle"
+  targetAmount   Float
+  savedAmount    Float     @default(0)
+  targetDate     DateTime
+  dailyBudgetCap Float?    // Suggested by AI
+  status         String    @default("IN_PROGRESS") // "IN_PROGRESS" | "COMPLETED"
+}
+
+model Receipt {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  merchantName String?
+  totalAmount  Float
+  currency     String        @default("BDT")
+  category     String?       // AI-Tagged
+  items        ExpenseItem[]
+  createdAt    DateTime      @default(now())
+}
+
+model ExpenseItem {
+  id        String  @id @default(uuid())
+  receiptId String
+  receipt   Receipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  name      String
+  price     Float
+}
