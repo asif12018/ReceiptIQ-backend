@@ -159,7 +159,7 @@ export const auth = betterAuth({
     cookies: {
       state: {
         attributes: {
-          sameSite: "lax",   // ← Changed from 'none' to 'lax' (same domain redirect)
+          sameSite: "none",  // ← Changed from 'lax' to 'none' to fix state_mismatch in cross-domain OAuth
           secure: true,
           httpOnly: true,
           path: "/",
