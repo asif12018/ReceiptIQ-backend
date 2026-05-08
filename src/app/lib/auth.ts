@@ -64,6 +64,14 @@ export const auth = betterAuth({
         type: "date",
         required: false,
       },
+      occupation: {
+        type: "string",
+        required: false,
+      },
+      monthlyIncome: {
+        type: "number",
+        required: false,
+      },
     },
   },
   plugins: [
