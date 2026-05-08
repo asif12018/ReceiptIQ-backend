@@ -2,13 +2,21 @@ import { prisma } from "../../../app";
 import { uploadToCloudinary } from "../../utils/cloudinary";
 
 export const UserService = {
-  updateProfile: async (userId: string, file?: Express.Multer.File) => {
-    if (!file) throw new Error("No avatar provided");
-    const avatarUrl = await uploadToCloudinary(file.buffer, file.mimetype);
+  updateProfile: async (userId: string, file?: Express.Multer.File, data?: any) => {
+    let updateData: any = { ...data };
+
+    if (file) {
+      const avatarUrl = await uploadToCloudinary(file.buffer, file.mimetype);
+      updateData.avatarUrl = avatarUrl;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new Error("No data provided to update");
+    }
 
     return await prisma.user.update({
       where: { id: userId },
-      data: { avatarUrl }
+      data: updateData
     });
   },
 

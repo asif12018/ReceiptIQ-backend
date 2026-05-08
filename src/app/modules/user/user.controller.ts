@@ -7,7 +7,8 @@ export const UserController = {
     try {
       const userId = (req as any).user.id;
       const file = req.file;
-      const result = await UserService.updateProfile(userId, file);
+      const data = req.body.data ? JSON.parse(req.body.data) : req.body;
+      const result = await UserService.updateProfile(userId, file, data);
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);
