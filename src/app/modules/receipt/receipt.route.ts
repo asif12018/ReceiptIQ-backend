@@ -7,8 +7,10 @@ import { ReceiptController } from "./receipt.controller";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.get("/", authGuard, ReceiptController.getMyReceipts);
 router.post("/scan", authGuard, upload.single("image"), ReceiptController.scanReceipt);
 router.post("/voice", authGuard, ReceiptController.scanVoice);
 router.post("/text", authGuard, ReceiptController.scanText);
 
 export const ReceiptRoutes = router;
+

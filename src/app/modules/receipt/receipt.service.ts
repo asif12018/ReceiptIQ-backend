@@ -62,5 +62,14 @@ Text: "${textLog}"`;
         category: parsedData.category,
       }
     });
-  }
+  },
+
+  getMyReceipts: async (userId: string) => {
+    return await prisma.receipt.findMany({
+      where: { userId },
+      include: { items: true },
+      orderBy: { createdAt: "desc" },
+    });
+  },
 };
+

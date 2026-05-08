@@ -19,6 +19,11 @@ export const ChatService = {
       model: "gemini-2.5-flash",
       generationConfig: { responseMimeType: "application/json" }
     });
+
+    // Separate model for natural language replies (no JSON mode)
+    const replyModel = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash",
+    });
     
     // Step 1: Intent Recognition
     const intentPrompt = `Analyze the user's message and determine the intent.
@@ -103,7 +108,7 @@ Context:
 
 Respond to the user directly, answering their query based on the context provided. Use Markdown.`;
 
-    const replyResult = await model.generateContent(replyPrompt);
+    const replyResult = await replyModel.generateContent(replyPrompt);
     return replyResult.response.text();
   }
 };
