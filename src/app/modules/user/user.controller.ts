@@ -1,19 +1,47 @@
 import { Request, Response, NextFunction } from "express";
 import { UserService } from "./user.service";
 
-
 export const UserController = {
+  getMe: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const result = await UserService.getMe(userId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  suggestBudget: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const result = await UserService.suggestBudget(userId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   updateProfile: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.id;
       const file = req.file;
-      const data = req.body.data ? JSON.parse(req.body.data) : req.body;
+
+      // FormData sends everything as strings — parse numbers explicitly
+      const raw = req.body;
+      const data: any = {};
+      if (raw.name)          data.name          = raw.name;
+      if (raw.occupation)    data.occupation    = raw.occupation;
+      if (raw.monthlyIncome) data.monthlyIncome = parseFloat(raw.monthlyIncome);
+      if (raw.monthlyBudget) data.monthlyBudget = parseFloat(raw.monthlyBudget);
+
       const result = await UserService.updateProfile(userId, file, data);
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);
     }
   },
+
   getAdminStats: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await UserService.getAdminStats();
@@ -22,6 +50,7 @@ export const UserController = {
       next(error);
     }
   },
+
   updateUserRole: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { targetUserId, role } = req.body;
@@ -33,5 +62,5 @@ export const UserController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
 };

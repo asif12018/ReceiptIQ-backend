@@ -2,6 +2,15 @@ import { Request, Response, NextFunction } from "express";
 import { GoalService } from "./goal.service";
 
 export const GoalController = {
+  getGoals: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = (req as any).user.id;
+      const result = await GoalService.getGoals(userId);
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
   createGoal: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.id;
