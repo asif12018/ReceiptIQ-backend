@@ -3,7 +3,7 @@ import { prisma } from "../../../app";
 
 export const ReceiptService = {
   parseImage: async (imageBuffer: Buffer, mimeType: string, userId: string) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Analyze this receipt. Extract the following information and return ONLY a strict JSON object with these exact English keys:
 - merchantName (string, or null if not found)
@@ -37,7 +37,7 @@ export const ReceiptService = {
   },
 
   parseVoice: async (textLog: string, userId: string) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Extract expense data from the following Bengali/English text. 
 Translate merchant names and all outputs to English. 

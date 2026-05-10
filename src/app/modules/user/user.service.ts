@@ -44,7 +44,7 @@ export const UserService = {
 
     const goals = await prisma.goal.findMany({ where: { userId, status: "IN_PROGRESS" } });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = `You are a personal finance AI. Suggest a monthly budget for this user.
 
 User Profile:
