@@ -16,13 +16,13 @@ export const ChatService = {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       generationConfig: { responseMimeType: "application/json" }
     });
 
     // Separate model for natural language replies (no JSON mode)
     const replyModel = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
     });
     
     // Step 1: Intent Recognition
