@@ -37,12 +37,21 @@ exports.ReceiptController = {
                 return res.status(400).json({ success: false, message: "No text provided" });
             }
             const userId = req.user.id;
-            // We reuse the parseVoice NLP logic which beautifully structures text into a receipt
             const result = await receipt_service_1.ReceiptService.parseVoice(text, userId);
             res.status(201).json({ success: true, data: result });
         }
         catch (error) {
             next(error);
         }
-    }
+    },
+    getMyReceipts: async (req, res, next) => {
+        try {
+            const userId = req.user.id;
+            const result = await receipt_service_1.ReceiptService.getMyReceipts(userId);
+            res.status(200).json({ success: true, data: result });
+        }
+        catch (error) {
+            next(error);
+        }
+    },
 };

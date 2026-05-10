@@ -40,8 +40,13 @@ exports.AuthController = {
             if (!email || !otp)
                 return res.status(400).json({ success: false, message: "Email and OTP are required" });
             // Manually verify OTP in database for custom verification step
+            // Better-Auth stores the identifier with prefixes (e.g. email-verification-otp-test@test.com)
+            // and appends retry counts to the value (e.g. 123456:0).
             const verification = await prisma_1.prisma.verification.findFirst({
-                where: { identifier: email, value: otp }
+                where: {
+                    identifier: { endsWith: email },
+                    value: { startsWith: otp }
+                }
             });
             if (!verification) {
                 return res.status(400).json({ success: false, message: "Invalid OTP code" });
@@ -49,6 +54,11 @@ exports.AuthController = {
             if (verification.expiresAt && verification.expiresAt < new Date()) {
                 return res.status(400).json({ success: false, message: "OTP code has expired" });
             }
+            // Mark the user's email as verified since they successfully entered a valid OTP
+            await prisma_1.prisma.user.update({
+                where: { email },
+                data: { emailVerified: true }
+            });
             res.json({ success: true, message: "OTP verified successfully. You may now reset your password." });
         }
         catch (error) {

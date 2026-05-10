@@ -10,6 +10,7 @@ const authGuard_1 = require("../../middlewares/authGuard");
 const receipt_controller_1 = require("./receipt.controller");
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
+router.get("/", authGuard_1.authGuard, receipt_controller_1.ReceiptController.getMyReceipts);
 router.post("/scan", authGuard_1.authGuard, upload.single("image"), receipt_controller_1.ReceiptController.scanReceipt);
 router.post("/voice", authGuard_1.authGuard, receipt_controller_1.ReceiptController.scanVoice);
 router.post("/text", authGuard_1.authGuard, receipt_controller_1.ReceiptController.scanText);

@@ -3,6 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.GoalController = void 0;
 const goal_service_1 = require("./goal.service");
 exports.GoalController = {
+    getGoals: async (req, res, next) => {
+        try {
+            const userId = req.user.id;
+            const result = await goal_service_1.GoalService.getGoals(userId);
+            res.status(200).json({ success: true, data: result });
+        }
+        catch (error) {
+            next(error);
+        }
+    },
     createGoal: async (req, res, next) => {
         try {
             const userId = req.user.id;

@@ -17,8 +17,12 @@ exports.ChatService = {
         });
         const user = await app_1.prisma.user.findUnique({ where: { id: userId } });
         const model = gemini_1.genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: { responseMimeType: "application/json" }
+        });
+        // Separate model for natural language replies (no JSON mode)
+        const replyModel = gemini_1.genAI.getGenerativeModel({
+            model: "gemini-2.0-flash",
         });
         // Step 1: Intent Recognition
         const intentPrompt = `Analyze the user's message and determine the intent.
@@ -97,7 +101,7 @@ Context:
 - Monthly Budget: ${user?.monthlyBudget || "Not set"}
 
 Respond to the user directly, answering their query based on the context provided. Use Markdown.`;
-        const replyResult = await model.generateContent(replyPrompt);
+        const replyResult = await replyModel.generateContent(replyPrompt);
         return replyResult.response.text();
     }
 };
