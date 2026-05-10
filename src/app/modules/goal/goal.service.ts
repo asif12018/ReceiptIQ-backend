@@ -47,7 +47,7 @@ export const GoalService = {
     const totalSpent = recentReceipts.reduce((acc, r) => acc + r.totalAmount, 0);
     const averageDailySpending = totalSpent / 30;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `Data Synthesis:
 - Goal Target: ${goal.targetAmount}
 - Goal Saved: ${goal.savedAmount}

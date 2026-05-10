@@ -17,7 +17,7 @@ exports.ChatService = {
         });
         const user = await app_1.prisma.user.findUnique({ where: { id: userId } });
         const model = gemini_1.genAI.getGenerativeModel({
-            model: "gemini-2-flash",
+            model: "gemini-1.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
         // Step 1: Intent Recognition

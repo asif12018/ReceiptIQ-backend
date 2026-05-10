@@ -5,7 +5,7 @@ const gemini_1 = require("../../utils/gemini");
 const app_1 = require("../../../app");
 exports.ReceiptService = {
     parseImage: async (imageBuffer, mimeType, userId) => {
-        const model = gemini_1.genAI.getGenerativeModel({ model: "gemini-2-flash" });
+        const model = gemini_1.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `Analyze this receipt. Extract the following information and return ONLY a strict JSON object with these exact English keys:
 - merchantName (string, or null if not found)
 - totalAmount (number)
@@ -34,7 +34,7 @@ exports.ReceiptService = {
         });
     },
     parseVoice: async (textLog, userId) => {
-        const model = gemini_1.genAI.getGenerativeModel({ model: "gemini-2-flash" });
+        const model = gemini_1.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `Extract expense data from the following Bengali/English text. 
 Translate merchant names and all outputs to English. 
 Return ONLY a strict JSON object with these exact keys:

@@ -4,7 +4,7 @@ exports.parseReceipt = void 0;
 const generative_ai_1 = require("@google/generative-ai");
 const genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const parseReceipt = async (imageBuffer, mimeType) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-2-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `Analyze this receipt. Extract the following information and return ONLY a strict JSON object with these exact keys:
 - merchantName (string, or null if not found)
 - totalAmount (number)

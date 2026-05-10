@@ -23,7 +23,7 @@ const analyzeGoals = async (userId) => {
         },
         include: { items: true }
     });
-    const model = genAI.getGenerativeModel({ model: "gemini-2-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `You are a proactive Goal Coach and financial advisor.
 Here are the user's active savings goals: ${JSON.stringify(goals)}
 Here are the user's receipts from the last 30 days: ${JSON.stringify(receipts)}
