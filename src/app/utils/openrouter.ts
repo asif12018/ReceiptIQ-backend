@@ -16,11 +16,15 @@ export const openrouter = new OpenAI({
 /**
  * Vision model fallback chain — most reliable first.
  * All are free-tier on OpenRouter.
+ * Update this list if models are removed: https://openrouter.ai/models?q=vision&order=default
  */
 const VISION_MODELS = [
-  "google/gemini-2.0-flash-exp:free",           // Best OCR accuracy, free via OpenRouter (separate quota from direct Gemini)
-  "meta-llama/llama-3.2-11b-vision-instruct:free", // Reliable fallback
-  "qwen/qwen2.5-vl-72b-instruct:free",           // Powerful but can loop on structured output
+  "google/gemini-2.0-flash-exp:free",              // Best OCR accuracy
+  "google/gemma-3-27b-it:free",                    // Gemma 3 multimodal, strong vision
+  "meta-llama/llama-3.2-11b-vision-instruct:free", // Reliable llama vision
+  "microsoft/phi-4-multimodal-instruct:free",       // Microsoft phi-4 multimodal
+  "moonshotai/kimi-vl-a3b-thinking:free",          // Kimi vision-language model
+  "openrouter/auto",                               // Auto-picks best available free model (last resort)
 ];
 
 /**
@@ -30,7 +34,7 @@ const VISION_MODELS = [
 export async function analyzeImageWithVision(
   imageBase64: string,
   mimeType: string,
-  prompt: string
+  prompt: string,
 ): Promise<string> {
   let lastError: unknown;
 
@@ -64,18 +68,25 @@ export async function analyzeImageWithVision(
       if (!content) throw new Error("Empty response from model");
 
       // Reject if OpenRouter loop detection triggered
-      if (content.includes("looping content") || content.includes("flagged for loop")) {
+      if (
+        content.includes("looping content") ||
+        content.includes("flagged for loop")
+      ) {
         throw new Error("Loop detection triggered");
       }
 
       console.log(`[OpenRouter] Success with model: ${model}`);
       return content;
     } catch (err: any) {
-      console.warn(`[OpenRouter] Model ${model} failed: ${err?.message ?? err}`);
+      console.warn(
+        `[OpenRouter] Model ${model} failed: ${err?.message ?? err}`,
+      );
       lastError = err;
       // Continue to next model in fallback chain
     }
   }
 
-  throw new Error(`All vision models failed. Last error: ${(lastError as any)?.message ?? lastError}`);
+  throw new Error(
+    `All vision models failed. Last error: ${(lastError as any)?.message ?? lastError}`,
+  );
 }

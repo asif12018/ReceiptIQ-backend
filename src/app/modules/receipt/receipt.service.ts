@@ -15,10 +15,13 @@ export const ReceiptService = {
     const rawText = await analyzeImageWithVision(
       imageBuffer.toString("base64"),
       mimeType,
-      prompt
+      prompt,
     );
 
-    const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const cleaned = rawText
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
     const parsedData = JSON.parse(cleaned);
 
     return await prisma.receipt.create({
