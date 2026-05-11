@@ -1,4 +1,4 @@
-import { genAI } from "../../utils/gemini";
+import { groqJSON, groqComplete } from "../../utils/groq";
 import { prisma } from "../../../app";
 import { ReceiptService } from "../receipt/receipt.service";
 import { GoalService } from "../goal/goal.service";
@@ -15,16 +15,6 @@ export const ChatService = {
     });
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-      generationConfig: { responseMimeType: "application/json" }
-    });
-
-    // Separate model for natural language replies (no JSON mode)
-    const replyModel = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash",
-    });
-    
     // Step 1: Intent Recognition
     const intentPrompt = `Analyze the user's message and determine the intent.
 The message could be in English, Bengali, or Benglish.
@@ -47,11 +37,9 @@ Return ONLY a strict JSON object with these keys:
 
 User's message: "${userMessage}"`;
 
-    const intentResult = await model.generateContent(intentPrompt);
-    let intentText = intentResult.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
     let parsedIntent: any;
     try {
-      parsedIntent = JSON.parse(intentText);
+      parsedIntent = await groqJSON(intentPrompt);
     } catch (e) {
       parsedIntent = { intent: "GENERAL_CHAT", extractedData: {} };
     }
@@ -108,7 +96,6 @@ Context:
 
 Respond to the user directly, answering their query based on the context provided. Use Markdown.`;
 
-    const replyResult = await replyModel.generateContent(replyPrompt);
-    return replyResult.response.text();
+    return await groqComplete(replyPrompt);
   }
 };

@@ -1,6 +1,6 @@
 import { prisma } from "../../../app";
 import { uploadToCloudinary } from "../../utils/cloudinary";
-import { genAI } from "../../utils/gemini";
+import { groqJSON } from "../../utils/groq";
 
 export const UserService = {
   getMe: async (userId: string) => {
@@ -44,7 +44,6 @@ export const UserService = {
 
     const goals = await prisma.goal.findMany({ where: { userId, status: "IN_PROGRESS" } });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     const prompt = `You are a personal finance AI. Suggest a monthly budget for this user.
 
 User Profile:
@@ -59,9 +58,7 @@ Return ONLY a strict JSON object with these keys:
 - reasoning (string, 2-3 sentences explaining why, in plain English)
 - breakdown (object: keys are category names, values are suggested monthly amounts in BDT)`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-    return JSON.parse(text);
+    return await groqJSON(prompt);
   },
 
   updateProfile: async (userId: string, file?: Express.Multer.File, data?: any) => {

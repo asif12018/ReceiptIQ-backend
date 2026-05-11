@@ -1,9 +1,11 @@
 import { genAI } from "../../utils/gemini";
+import { groqJSON } from "../../utils/groq";
 import { prisma } from "../../../app";
 
 export const ReceiptService = {
+  // parseImage STAYS on Gemini — Groq has no vision/image API
   parseImage: async (imageBuffer: Buffer, mimeType: string, userId: string) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const prompt = `Analyze this receipt. Extract the following information and return ONLY a strict JSON object with these exact English keys:
 - merchantName (string, or null if not found)
@@ -36,9 +38,8 @@ export const ReceiptService = {
     });
   },
 
+  // parseVoice moved to Groq — text-only, no vision needed
   parseVoice: async (textLog: string, userId: string) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     const prompt = `Extract expense data from the following Bengali/English text. 
 Translate merchant names and all outputs to English. 
 Return ONLY a strict JSON object with these exact keys:
@@ -49,9 +50,7 @@ Return ONLY a strict JSON object with these exact keys:
 
 Text: "${textLog}"`;
 
-    const result = await model.generateContent(prompt);
-    let text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-    const parsedData = JSON.parse(text);
+    const parsedData = await groqJSON(prompt);
 
     return await prisma.receipt.create({
       data: {
@@ -72,4 +71,3 @@ Text: "${textLog}"`;
     });
   },
 };
-
