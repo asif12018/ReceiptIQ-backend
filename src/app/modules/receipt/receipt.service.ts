@@ -1,24 +1,25 @@
-import { genAI } from "../../utils/gemini";
+import { analyzeImageWithVision } from "../../utils/openrouter";
 import { groqJSON } from "../../utils/groq";
 import { prisma } from "../../../app";
 
 export const ReceiptService = {
-  // parseImage STAYS on Gemini — Groq has no vision/image API
+  // parseImage now uses OpenRouter (free vision models) — no more Gemini rate limits
   parseImage: async (imageBuffer: Buffer, mimeType: string, userId: string) => {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
-    const prompt = `Analyze this receipt. Extract the following information and return ONLY a strict JSON object with these exact English keys:
+    const prompt = `Analyze this receipt image. Extract the following information and return ONLY a strict JSON object with these exact English keys (no markdown, no code fences):
 - merchantName (string, or null if not found)
 - totalAmount (number)
 - currency (string, e.g. "BDT" or "USD")
 - category (string, best guess for the expense category, e.g. "Food", "Transport")
-- items (array of objects with 'name' and 'price' keys)`;
+- items (array of objects with 'name' and 'price' keys, can be empty array if not visible)`;
 
-    const imageParts = [{ inlineData: { data: imageBuffer.toString("base64"), mimeType } }];
+    const rawText = await analyzeImageWithVision(
+      imageBuffer.toString("base64"),
+      mimeType,
+      prompt
+    );
 
-    const result = await model.generateContent([prompt, ...imageParts]);
-    let text = result.response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-    const parsedData = JSON.parse(text);
+    const cleaned = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+    const parsedData = JSON.parse(cleaned);
 
     return await prisma.receipt.create({
       data: {
@@ -28,17 +29,18 @@ export const ReceiptService = {
         currency: parsedData.currency || "BDT",
         category: parsedData.category,
         items: {
-          create: parsedData.items?.map((item: any) => ({
-            name: item.name,
-            price: item.price
-          })) || []
-        }
+          create:
+            parsedData.items?.map((item: any) => ({
+              name: item.name,
+              price: item.price,
+            })) || [],
+        },
       },
-      include: { items: true }
+      include: { items: true },
     });
   },
 
-  // parseVoice moved to Groq — text-only, no vision needed
+  // parseVoice uses Groq — text-only, fast and generous limits
   parseVoice: async (textLog: string, userId: string) => {
     const prompt = `Extract expense data from the following Bengali/English text. 
 Translate merchant names and all outputs to English. 
@@ -59,7 +61,7 @@ Text: "${textLog}"`;
         totalAmount: parsedData.amount,
         currency: parsedData.currency || "BDT",
         category: parsedData.category,
-      }
+      },
     });
   },
 
