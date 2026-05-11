@@ -72,6 +72,10 @@ export const auth = betterAuth({
         type: "number",
         required: false,
       },
+      monthlyBudget: {
+        type: "number",
+        required: false,
+      },
     },
   },
   plugins: [
