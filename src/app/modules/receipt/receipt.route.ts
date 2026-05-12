@@ -11,6 +11,7 @@ router.get("/", authGuard, ReceiptController.getMyReceipts);
 router.post("/scan", authGuard, upload.single("image"), ReceiptController.scanReceipt);
 router.post("/voice", authGuard, ReceiptController.scanVoice);
 router.post("/text", authGuard, ReceiptController.scanText);
+router.get("/subscriptions", authGuard, ReceiptController.getSubscriptions);
 
 export const ReceiptRoutes = router;
 

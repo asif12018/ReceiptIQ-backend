@@ -86,7 +86,8 @@ export const UserController = {
   getAiInsights: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.id;
-      const result = await UserService.getAiInsights(userId);
+      const persona = (req.query.persona as string) || "Professional";
+      const result = await UserService.getAiInsights(userId, persona);
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       next(error);

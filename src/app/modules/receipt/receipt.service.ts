@@ -43,11 +43,11 @@ export const ReceiptService = {
     });
   },
 
-  // parseVoice uses Groq — text-only, fast and generous limits
+  // parseVoice uses Groq — text-only, fast and generous limits. Upgraded for "Brain Dump" multi-expense entry.
   parseVoice: async (textLog: string, userId: string) => {
-    const prompt = `Extract expense data from the following Bengali/English text. 
+    const prompt = `Extract expense data from the following Bengali/English text. It might be a messy "brain dump" containing multiple expenses.
 Translate merchant names and all outputs to English. 
-Return ONLY a strict JSON object with these exact keys:
+Return ONLY a strict JSON array of objects. Even if there is only one expense, return it inside an array. Each object must have these exact keys:
 - merchantName (string, or null if not found)
 - amount (number)
 - category (string, best guess)
@@ -56,16 +56,22 @@ Return ONLY a strict JSON object with these exact keys:
 Text: "${textLog}"`;
 
     const parsedData = await groqJSON(prompt);
+    const expenses = Array.isArray(parsedData) ? parsedData : [parsedData];
 
-    return await prisma.receipt.create({
-      data: {
-        userId,
-        merchantName: parsedData.merchantName,
-        totalAmount: parsedData.amount,
-        currency: parsedData.currency || "BDT",
-        category: parsedData.category,
-      },
-    });
+    const createdReceipts = await Promise.all(
+      expenses.map((exp: any) =>
+        prisma.receipt.create({
+          data: {
+            userId,
+            merchantName: exp.merchantName,
+            totalAmount: exp.amount,
+            currency: exp.currency || "BDT",
+            category: exp.category,
+          },
+        })
+      )
+    );
+    return createdReceipts;
   },
 
   getMyReceipts: async (userId: string) => {
@@ -74,5 +80,30 @@ Text: "${textLog}"`;
       include: { items: true },
       orderBy: { createdAt: "desc" },
     });
+  },
+
+  findSubscriptions: async (userId: string) => {
+    // Subscription Sniper Agent
+    const receipts = await prisma.receipt.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 50 // last 50 receipts to analyze
+    });
+
+    if (receipts.length === 0) return [];
+
+    const prompt = `You are a "Subscription Sniper" AI agent. Look at the following user expenses and identify likely recurring subscriptions (e.g., Netflix, Spotify, Gym, Cloud Hosting, ISPs, etc.).
+    
+Expenses JSON: ${JSON.stringify(receipts.map(r => ({ merchant: r.merchantName, amount: r.totalAmount, date: r.createdAt })))}
+
+Find any recurring subscriptions and return ONLY a strict JSON array of objects. Each object must have these exact keys:
+- merchant (string)
+- estimatedMonthlyCost (number)
+- draftCancellationEmail (string, a short professional email template to cancel the service, ready to send)
+
+If none found, return an empty array [].`;
+
+    const subscriptions = await groqJSON(prompt);
+    return Array.isArray(subscriptions) ? subscriptions : [];
   },
 };

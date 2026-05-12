@@ -145,9 +145,30 @@ Return ONLY a strict JSON object with these keys:
     return await prisma.user.delete({ where: { id: userId } });
   },
 
-  getAiInsights: async (userId: string) => {
+  getAiInsights: async (userId: string, persona: string = "Professional") => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new Error("User not found.");
+
+    // Peer Benchmarking
+    let peerComparisonContext = "";
+    if (user.occupation) {
+      const peers = await prisma.user.findMany({
+        where: { occupation: user.occupation, id: { not: userId } },
+        select: { monthlyIncome: true, receipts: { select: { totalAmount: true } } }
+      });
+      if (peers.length > 0) {
+        let totalPeerSpend = 0;
+        let totalPeerIncome = 0;
+        let validIncomes = 0;
+        peers.forEach(p => {
+          if (p.monthlyIncome) { totalPeerIncome += p.monthlyIncome; validIncomes++; }
+          p.receipts.forEach(r => totalPeerSpend += r.totalAmount);
+        });
+        const avgPeerSpend = Math.round(totalPeerSpend / peers.length);
+        const avgPeerIncome = validIncomes > 0 ? Math.round(totalPeerIncome / validIncomes) : 0;
+        peerComparisonContext = `\nPeer Benchmark Context: Other users in the same occupation (${user.occupation}) spend an average of ৳${avgPeerSpend} and earn an average of ৳${avgPeerIncome}. Use this to anonymously compare the user to their peers in the 'spendingInsight'.`;
+      }
+    }
 
     // Gather recent spending data for context
     const threeMonthsAgo = new Date();
@@ -168,7 +189,15 @@ Return ONLY a strict JSON object with these keys:
     const goals = await prisma.goal.findMany({ where: { userId } });
     const hasGoals = goals.length > 0;
 
+    let personaInstructions = "You are a professional, helpful financial assistant.";
+    if (persona === "Roast Mode") {
+      personaInstructions = "You are Gordon Ramsay as a financial advisor. You are brutally honest, use British slang, insult the user (playfully) for bad spending habits like eating out too much, and are extremely aggressive about saving money. Be highly entertaining and savage.";
+    } else if (persona === "Hype Beast") {
+      personaInstructions = "You are an over-the-top hype beast financial coach. You use words like 'YOOO', 'LFG', 'fire', and 'W'. You hype up any savings and aggressively encourage them to get that bag.";
+    }
+
     const prompt = `You are a personal finance AI coach for a user in Bangladesh.
+${personaInstructions}
 
 User Profile:
 - Name: ${user.name || "User"}
@@ -178,8 +207,9 @@ User Profile:
 - Average Monthly Spending (last 3 months): ৳${avgMonthly}
 - Spending by Category: ${JSON.stringify(byCategory)}
 - Has Active Goals: ${hasGoals}
+${peerComparisonContext}
 
-Generate personalized, actionable financial insights for this user.
+Generate personalized, actionable financial insights for this user using your assigned persona voice.
 ${!hasGoals ? "Since the user has NO financial goals yet, also suggest 2-3 concrete, realistic financial goals they should consider based on their occupation and income." : ""}
 
 Return ONLY a strict JSON object with these exact keys:
