@@ -13,5 +13,7 @@ router.post("/suggest-budget", authGuard, UserController.suggestBudget);
 router.patch("/update-profile", authGuard, upload.single("avatar"), UserController.updateProfile);
 router.get("/admin/stats", authGuard, validateRole("ADMIN"), UserController.getAdminStats);
 router.patch("/admin/role", authGuard, validateRole("ADMIN"), UserController.updateUserRole);
+router.get("/admin/users", authGuard, validateRole("ADMIN"), UserController.getAllUsers);
+router.delete("/admin/users/:id", authGuard, validateRole("ADMIN"), UserController.deleteUser);
 
 export const UserRoutes = router;

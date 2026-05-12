@@ -64,6 +64,25 @@ export const UserController = {
     }
   },
 
+  getAllUsers: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await UserService.getAllUsers();
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  deleteUser: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = req.params.id as string;
+      const result = await UserService.deleteUser(id);
+      res.status(200).json({ success: true, data: result, message: "User deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   getAiInsights: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const userId = (req as any).user.id;

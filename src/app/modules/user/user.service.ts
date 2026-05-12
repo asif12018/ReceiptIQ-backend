@@ -83,7 +83,29 @@ Return ONLY a strict JSON object with these keys:
     const totalUsers = await prisma.user.count();
     const totalReceipts = await prisma.receipt.count();
     const totalGoals = await prisma.goal.count();
-    return { totalUsers, totalReceipts, totalGoals, message: "Global platform analytics" };
+    
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const recentUsers = await prisma.user.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true },
+    });
+    
+    const usersOverTime = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (29 - i));
+      const dateStr = d.toISOString().split('T')[0];
+      const count = recentUsers.filter(u => u.createdAt.toISOString().split('T')[0] === dateStr).length;
+      return { date: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }), users: count };
+    });
+
+    let cumulative = totalUsers - recentUsers.length;
+    const chartData = usersOverTime.map(item => {
+      cumulative += item.users;
+      return { name: item.date, users: cumulative };
+    });
+
+    return { totalUsers, totalReceipts, totalGoals, usersOverTime: chartData, message: "Global platform analytics" };
   },
 
   updateBudget: async (userId: string, budget: number) => {
@@ -98,6 +120,29 @@ Return ONLY a strict JSON object with these keys:
       where: { id: userId },
       data: { role },
     });
+  },
+
+  getAllUsers: async () => {
+    return await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
+  deleteUser: async (userId: string) => {
+    // Manually cascade delete due to lack of Prisma relation rules
+    await prisma.session.deleteMany({ where: { userId } });
+    await prisma.account.deleteMany({ where: { userId } });
+    await prisma.expenseItem.deleteMany({ where: { receipt: { userId } } });
+    await prisma.receipt.deleteMany({ where: { userId } });
+    await prisma.goal.deleteMany({ where: { userId } });
+    return await prisma.user.delete({ where: { id: userId } });
   },
 
   getAiInsights: async (userId: string) => {
