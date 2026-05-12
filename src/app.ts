@@ -9,6 +9,8 @@ import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import router from "./app/routes";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
+import rateLimit from "express-rate-limit";
+import { logger } from "./app/utils/logger";
 
 const app: Application = express();
 
@@ -27,6 +29,20 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { success: false, message: "Too many requests, please try again later." }
+});
+app.use(limiter);
+
+// Request Logging
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
 
 // Root Route
 app.get("/", (req, res) => {
