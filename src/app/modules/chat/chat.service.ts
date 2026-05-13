@@ -14,6 +14,8 @@ export const ChatService = {
       orderBy: { createdAt: 'desc' } 
     });
     const user = await prisma.user.findUnique({ where: { id: userId } });
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
 
     // Step 1: Intent Recognition
     const intentPrompt = `Analyze the user's message and determine the intent.
@@ -86,7 +88,7 @@ User's message: "${userMessage}"`;
     }
 
     // Default & Financial Query Handler
-    const replyPrompt = `You are the ReceiptIQ AI Assistant.
+    const replyPrompt = `${systemPrompt}
 User's Intent was identified as: ${intent}.
 User's message: "${userMessage}"
 Context:

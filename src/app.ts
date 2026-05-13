@@ -56,6 +56,11 @@ app.use("/api/v1", router);
 // since you have `requireEmailVerification` turned on. 
 // This middleware explicitly throws the error you want before Better-Auth handles the request.
 app.post("/api/v1/auth/sign-up/email", async (req, res, next) => {
+  const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+  if (settings && !settings.newRegistrations) {
+    return res.status(403).json({ success: false, message: "New registrations are currently disabled by the administrator." });
+  }
+
   const { email } = req.body;
   if (email) {
     const existingUser = await prisma.user.findUnique({ where: { email } });

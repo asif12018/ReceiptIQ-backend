@@ -21,6 +21,14 @@ export const UserService = {
     });
   },
 
+  getSystemConfig: async () => {
+    const settings = await prisma.systemSetting.findUnique({
+      where: { key: "GLOBAL_SETTINGS" },
+      select: { newRegistrations: true, maintenanceMode: true }
+    });
+    return settings || { newRegistrations: true, maintenanceMode: false };
+  },
+
   suggestBudget: async (userId: string) => {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user?.monthlyIncome) throw new Error("Set your monthly income first.");
@@ -43,8 +51,11 @@ export const UserService = {
     });
 
     const goals = await prisma.goal.findMany({ where: { userId, status: "IN_PROGRESS" } });
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
 
-    const prompt = `You are a personal finance AI. Suggest a monthly budget for this user.
+    const prompt = `${systemPrompt}
+You are a personal finance AI. Suggest a monthly budget for this user.
 
 User Profile:
 - Occupation: ${user.occupation || "Unknown"}
@@ -213,7 +224,11 @@ Return ONLY a strict JSON object with these keys:
       personaInstructions = "You are an over-the-top hype beast financial coach. You use words like 'YOOO', 'LFG', 'fire', and 'W'. You hype up any savings and aggressively encourage them to get that bag.";
     }
 
-    const prompt = `You are a personal finance AI coach for a user in Bangladesh.
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
+
+    const prompt = `${systemPrompt}
+You are a personal finance AI coach for a user in Bangladesh.
 ${personaInstructions}
 
 User Profile:

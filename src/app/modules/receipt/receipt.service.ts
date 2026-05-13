@@ -5,7 +5,11 @@ import { prisma } from "../../../app";
 export const ReceiptService = {
   // parseImage now uses OpenRouter (free vision models) — no more Gemini rate limits
   parseImage: async (imageBuffer: Buffer, mimeType: string, userId: string) => {
-    const prompt = `Analyze this receipt image. Extract the following information and return ONLY a strict JSON object with these exact English keys (no markdown, no code fences):
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
+
+    const prompt = `${systemPrompt}
+Analyze this receipt image. Extract the following information and return ONLY a strict JSON object with these exact English keys (no markdown, no code fences):
 - merchantName (string, or null if not found)
 - totalAmount (number)
 - currency (string, e.g. "BDT" or "USD")
@@ -45,7 +49,11 @@ export const ReceiptService = {
 
   // parseVoice uses Groq — text-only, fast and generous limits. Upgraded for "Brain Dump" multi-expense entry.
   parseVoice: async (textLog: string, userId: string) => {
-    const prompt = `Extract expense data from the following Bengali/English text. It might be a messy "brain dump" containing multiple expenses.
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
+
+    const prompt = `${systemPrompt}
+Extract expense data from the following Bengali/English text. It might be a messy "brain dump" containing multiple expenses.
 Translate merchant names and all outputs to English. 
 Return ONLY a strict JSON array of objects. Even if there is only one expense, return it inside an array. Each object must have these exact keys:
 - merchantName (string, or null if not found)
@@ -92,7 +100,11 @@ Text: "${textLog}"`;
 
     if (receipts.length === 0) return [];
 
-    const prompt = `You are a "Subscription Sniper" AI agent. Look at the following user expenses and identify likely recurring subscriptions (e.g., Netflix, Spotify, Gym, Cloud Hosting, ISPs, etc.).
+    const settings = await prisma.systemSetting.findUnique({ where: { key: "GLOBAL_SETTINGS" } });
+    const systemPrompt = settings?.systemPrompt || "You are a highly intelligent financial assistant for ReceiptIQ...";
+
+    const prompt = `${systemPrompt}
+You are a "Subscription Sniper" AI agent. Look at the following user expenses and identify likely recurring subscriptions (e.g., Netflix, Spotify, Gym, Cloud Hosting, ISPs, etc.).
     
 Expenses JSON: ${JSON.stringify(receipts.map(r => ({ merchant: r.merchantName, amount: r.totalAmount, date: r.createdAt })))}
 

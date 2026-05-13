@@ -7,6 +7,7 @@ import { UserController } from "./user.controller";
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.get("/system-config", UserController.getSystemConfig);
 router.get("/me", authGuard, UserController.getMe);
 router.get("/ai-insights", authGuard, UserController.getAiInsights);
 router.post("/suggest-budget", authGuard, UserController.suggestBudget);
