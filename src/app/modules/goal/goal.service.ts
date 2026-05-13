@@ -61,7 +61,7 @@ Return ONLY a strict JSON object with these keys:
 - dailyBudgetCap (number, suggested limit)
 - costingSuggestions (array of strings, provide occupation-specific tips in Bengali and English to save money, e.g. advising a FREELANCER to save 20% for taxes before funding their motorcycle goal)`;
 
-    const advice = await groqJSON(prompt);
+    const advice = await groqJSON(prompt, "Goal AI Advice Synthesis");
 
     // Persist the AI-calculated dailyBudgetCap back to the goal record
     await prisma.goal.update({

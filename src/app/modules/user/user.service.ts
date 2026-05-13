@@ -69,22 +69,7 @@ Return ONLY a strict JSON object with these keys:
 - reasoning (string, 2-3 sentences explaining why, in plain English)
 - breakdown (object: keys are category names, values are suggested monthly amounts in BDT)`;
 
-    const response = await groqJSON(prompt);
-
-    // Track AI Usage
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    await prisma.aPIQuota.upsert({
-      where: { date: today },
-      update: { requestsCount: { increment: 1 } },
-      create: { date: today, requestsCount: 1 }
-    });
-    await prisma.aILog.create({
-      data: {
-        action: "Goal Coach generated budget advice",
-        tokens: 450 // Approximate token usage
-      }
-    });
+    const response = await groqJSON(prompt, "Goal Coach generated budget advice");
 
     return response;
   },
@@ -252,22 +237,7 @@ Return ONLY a strict JSON object with these exact keys:
 ${!hasGoals ? "- suggestedGoals (array of objects with keys: title (string), targetAmount (number), timelineMonths (number), reason (string))" : "- suggestedGoals (array, empty [])"}
 - spendingInsight (string: 1 sentence observation about their current spending pattern or encouragement if no data)`;
 
-    const response = await groqJSON(prompt);
-
-    // Track AI Usage
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    await prisma.aPIQuota.upsert({
-      where: { date: today },
-      update: { requestsCount: { increment: 1 } },
-      create: { date: today, requestsCount: 1 }
-    });
-    await prisma.aILog.create({
-      data: {
-        action: "AI generated financial insights",
-        tokens: 600 // Approximate
-      }
-    });
+    const response = await groqJSON(prompt, "AI generated financial insights");
 
     return response;
   },

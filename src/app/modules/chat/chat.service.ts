@@ -41,7 +41,7 @@ User's message: "${userMessage}"`;
 
     let parsedIntent: any;
     try {
-      parsedIntent = await groqJSON(intentPrompt);
+      parsedIntent = await groqJSON(intentPrompt, "Agentic Chat Intent Recognition");
     } catch (e) {
       parsedIntent = { intent: "GENERAL_CHAT", extractedData: {} };
     }
@@ -98,6 +98,6 @@ Context:
 
 Respond to the user directly, answering their query based on the context provided. Use Markdown.`;
 
-    return await groqComplete(replyPrompt);
+    return await groqComplete(replyPrompt, "Agentic Chat Response");
   }
 };

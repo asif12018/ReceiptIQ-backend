@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { prisma } from "../../app";
 
 /**
  * OpenRouter provides free access to many vision-capable models.
@@ -76,6 +77,23 @@ export async function analyzeImageWithVision(
       }
 
       console.log(`[OpenRouter] Success with model: ${model}`);
+      
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      await prisma.aPIQuota.upsert({
+        where: { date: today },
+        update: { requestsCount: { increment: 1 } },
+        create: { date: today, requestsCount: 1 }
+      });
+      
+      const tokens = response.usage?.total_tokens || 800; // rough fallback for vision
+      await prisma.aILog.create({
+        data: {
+          action: "Receipt Vision Parsing",
+          tokens
+        }
+      });
+
       return content;
     } catch (err: any) {
       console.warn(

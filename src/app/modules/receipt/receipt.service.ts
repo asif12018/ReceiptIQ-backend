@@ -63,7 +63,7 @@ Return ONLY a strict JSON array of objects. Even if there is only one expense, r
 
 Text: "${textLog}"`;
 
-    const parsedData = await groqJSON(prompt);
+    const parsedData = await groqJSON(prompt, "Voice/Text Expense Parsing");
     const expenses = Array.isArray(parsedData) ? parsedData : [parsedData];
 
     const createdReceipts = await Promise.all(
@@ -115,7 +115,7 @@ Find any recurring subscriptions and return ONLY a strict JSON array of objects.
 
 If none found, return an empty array [].`;
 
-    const subscriptions = await groqJSON(prompt);
+    const subscriptions = await groqJSON(prompt, "Subscription Sniper Agent");
     return Array.isArray(subscriptions) ? subscriptions : [];
   },
 };
