@@ -58,7 +58,24 @@ Return ONLY a strict JSON object with these keys:
 - reasoning (string, 2-3 sentences explaining why, in plain English)
 - breakdown (object: keys are category names, values are suggested monthly amounts in BDT)`;
 
-    return await groqJSON(prompt);
+    const response = await groqJSON(prompt);
+
+    // Track AI Usage
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    await prisma.aPIQuota.upsert({
+      where: { date: today },
+      update: { requestsCount: { increment: 1 } },
+      create: { date: today, requestsCount: 1 }
+    });
+    await prisma.aILog.create({
+      data: {
+        action: "Goal Coach generated budget advice",
+        tokens: 450 // Approximate token usage
+      }
+    });
+
+    return response;
   },
 
   updateProfile: async (userId: string, file?: Express.Multer.File, data?: any) => {
@@ -220,6 +237,71 @@ Return ONLY a strict JSON object with these exact keys:
 ${!hasGoals ? "- suggestedGoals (array of objects with keys: title (string), targetAmount (number), timelineMonths (number), reason (string))" : "- suggestedGoals (array, empty [])"}
 - spendingInsight (string: 1 sentence observation about their current spending pattern or encouragement if no data)`;
 
-    return await groqJSON(prompt);
+    const response = await groqJSON(prompt);
+
+    // Track AI Usage
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    await prisma.aPIQuota.upsert({
+      where: { date: today },
+      update: { requestsCount: { increment: 1 } },
+      create: { date: today, requestsCount: 1 }
+    });
+    await prisma.aILog.create({
+      data: {
+        action: "AI generated financial insights",
+        tokens: 600 // Approximate
+      }
+    });
+
+    return response;
+  },
+
+  getSystemInfo: async () => {
+    // AILogs
+    const aiLogs = await prisma.aILog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 10
+    });
+
+    // API Quota
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const quota = await prisma.aPIQuota.findUnique({
+      where: { date: today }
+    });
+
+    // Settings
+    let settings = await prisma.systemSetting.findUnique({
+      where: { key: "GLOBAL_SETTINGS" }
+    });
+    if (!settings) {
+      settings = await prisma.systemSetting.create({
+        data: { key: "GLOBAL_SETTINGS" }
+      });
+    }
+
+    return {
+      aiLogs,
+      dailyQuota: quota ? quota.requestsCount : 0,
+      settings
+    };
+  },
+
+  updateSystemSettings: async (data: any) => {
+    return await prisma.systemSetting.upsert({
+      where: { key: "GLOBAL_SETTINGS" },
+      update: {
+        newRegistrations: data.newRegistrations,
+        maintenanceMode: data.maintenanceMode,
+        systemPrompt: data.systemPrompt
+      },
+      create: {
+        key: "GLOBAL_SETTINGS",
+        newRegistrations: data.newRegistrations ?? true,
+        maintenanceMode: data.maintenanceMode ?? false,
+        systemPrompt: data.systemPrompt ?? "You are a highly intelligent financial assistant for ReceiptIQ..."
+      }
+    });
   },
 };

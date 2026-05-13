@@ -116,3 +116,25 @@ model ExpenseItem {
   name      String
   price     Float
 }
+
+model SystemSetting {
+  id               String   @id @default(uuid())
+  key              String   @unique
+  newRegistrations Boolean  @default(true)
+  maintenanceMode  Boolean  @default(false)
+  systemPrompt     String   @default("You are a highly intelligent financial assistant for ReceiptIQ...")
+  updatedAt        DateTime @updatedAt
+}
+
+model AILog {
+  id        String   @id @default(uuid())
+  action    String
+  tokens    Int
+  createdAt DateTime @default(now())
+}
+
+model APIQuota {
+  id              String   @id @default(uuid())
+  date            DateTime @unique @db.Date
+  requestsCount   Int      @default(0)
+}

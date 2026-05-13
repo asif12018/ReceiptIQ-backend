@@ -15,5 +15,7 @@ router.get("/admin/stats", authGuard, validateRole("ADMIN"), UserController.getA
 router.patch("/admin/role", authGuard, validateRole("ADMIN"), UserController.updateUserRole);
 router.get("/admin/users", authGuard, validateRole("ADMIN"), UserController.getAllUsers);
 router.delete("/admin/users/:id", authGuard, validateRole("ADMIN"), UserController.deleteUser);
+router.get("/admin/system-info", authGuard, validateRole("ADMIN"), UserController.getSystemInfo);
+router.patch("/admin/system-info", authGuard, validateRole("ADMIN"), UserController.updateSystemSettings);
 
 export const UserRoutes = router;

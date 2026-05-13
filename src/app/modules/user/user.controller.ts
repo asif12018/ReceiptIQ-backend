@@ -93,4 +93,23 @@ export const UserController = {
       next(error);
     }
   },
+
+  getSystemInfo: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await UserService.getSystemInfo();
+      res.status(200).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  updateSystemSettings: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = req.body;
+      const result = await UserService.updateSystemSettings(data);
+      res.status(200).json({ success: true, data: result, message: "Settings updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
