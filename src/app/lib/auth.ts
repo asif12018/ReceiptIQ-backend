@@ -8,6 +8,18 @@ const dynamicImport = async (packageName: string) => {
   return new Function('modulePath', 'return import(modulePath)')(packageName);
 };
 
+// Dummy requires for Vercel's bundler (@vercel/nft) to correctly trace ESM dependencies.
+// Since these are ESM-only packages, we use dynamic import at runtime, 
+// but Vercel's static analysis needs to see them to include them in the deployment.
+if (false) {
+  // @ts-ignore
+  require("better-auth");
+  // @ts-ignore
+  require("better-auth/adapters/prisma");
+  // @ts-ignore
+  require("better-auth/plugins");
+}
+
 export const getAuth = async () => {
   if (authInstance) return authInstance;
 
