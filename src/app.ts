@@ -13,6 +13,10 @@ import { logger } from "./app/utils/logger";
 
 const app: Application = express();
 
+// Trust Vercel's proxy so express-rate-limit gets the correct client IP instead of the proxy's IP.
+// This resolves the ERR_ERL_FORWARDED_HEADER validation error.
+app.set("trust proxy", 1);
+
 const dynamicImport = async (packageName: string) => {
   return new Function('modulePath', 'return import(modulePath)')(packageName);
 };
