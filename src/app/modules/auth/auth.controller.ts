@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { auth } from "../../lib/auth";
+import { getAuth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 
 export const AuthController = {
@@ -25,6 +25,7 @@ export const AuthController = {
       if (!email) return res.status(400).json({ success: false, message: "Email is required" });
 
       // Trigger better-auth's request password reset which generates and sends the OTP
+      const auth = await getAuth();
       await auth.api.requestPasswordResetEmailOTP({
         body: { email },
       });
@@ -76,6 +77,7 @@ export const AuthController = {
       if (!email || !otp || !newPassword) return res.status(400).json({ success: false, message: "Email, OTP, and newPassword are required" });
 
       // Let better-auth handle resetting the password securely and invalidating the OTP
+      const auth = await getAuth();
       await auth.api.resetPasswordEmailOTP({
         body: { email, otp, password: newPassword },
       });

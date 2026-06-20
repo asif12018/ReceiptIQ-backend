@@ -1,11 +1,21 @@
-import { betterAuth } from "better-auth";
 import { sendEmail } from "../utils/email";
-import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
-import { bearer, emailOTP } from "better-auth/plugins";
 import config from "../config";
 
-export const auth = betterAuth({
+let authInstance: any = null;
+
+const dynamicImport = async (packageName: string) => {
+  return new Function('modulePath', 'return import(modulePath)')(packageName);
+};
+
+export const getAuth = async () => {
+  if (authInstance) return authInstance;
+
+  const { betterAuth } = await dynamicImport("better-auth");
+  const { prismaAdapter } = await dynamicImport("better-auth/adapters/prisma");
+  const { bearer, emailOTP } = await dynamicImport("better-auth/plugins");
+
+  authInstance = betterAuth({
   baseURL: config.BETTER_AUTH_URL,
   basePath: "/api/v1/auth",
   secret: config.BETTER_AUTH_SECRET,
@@ -188,3 +198,6 @@ export const auth = betterAuth({
     },
   },
 });
+
+  return authInstance;
+};

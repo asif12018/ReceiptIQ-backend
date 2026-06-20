@@ -7,12 +7,15 @@ export const prisma = new PrismaClient();
 
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import router from "./app/routes";
-import { toNodeHandler } from "better-auth/node";
-import { auth } from "./app/lib/auth";
+import { getAuth } from "./app/lib/auth";
 import rateLimit from "express-rate-limit";
 import { logger } from "./app/utils/logger";
 
 const app: Application = express();
+
+const dynamicImport = async (packageName: string) => {
+  return new Function('modulePath', 'return import(modulePath)')(packageName);
+};
 
 const corsOptions = {
   origin: [
@@ -72,7 +75,11 @@ app.post("/api/v1/auth/sign-up/email", async (req, res, next) => {
 });
 
 // Better-Auth handler (Catch-all for better-auth native routes)
-app.all("/api/v1/auth/*path", toNodeHandler(auth));
+app.all("/api/v1/auth/*path", async (req, res, next) => {
+  const auth = await getAuth();
+  const { toNodeHandler } = await dynamicImport("better-auth/node");
+  return toNodeHandler(auth)(req, res, next as any);
+});
 
 // Global Error Handler
 app.use(globalErrorHandler);
