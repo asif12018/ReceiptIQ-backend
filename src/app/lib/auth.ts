@@ -28,7 +28,7 @@ export const getAuth = async () => {
   const { bearer, emailOTP } = await dynamicImport("better-auth/plugins");
 
   authInstance = betterAuth({
-  baseURL: config.BETTER_AUTH_URL,
+  baseURL: config.BETTER_AUTH_URL?.endsWith('/') ? config.BETTER_AUTH_URL.slice(0, -1) : config.BETTER_AUTH_URL,
   basePath: "/api/v1/auth",
   secret: config.BETTER_AUTH_SECRET,
   database: prismaAdapter(prisma, {
@@ -192,23 +192,9 @@ export const getAuth = async () => {
     crossSubdomainCookies: {
       enabled: false,
     },
-    cookies: {
-      state: {
-        attributes: {
-          sameSite: "none",  // ← Changed from 'lax' to 'none' to fix state_mismatch in cross-domain OAuth
-          secure: true,
-          httpOnly: true,
-          path: "/",
-        },
-      },
-      sessionToken: {
-        attributes: {
-          sameSite: "none",  // ← Keep 'none' so frontend can read it cross-domain
-          secure: true,
-          httpOnly: true,
-          path: "/",
-        },
-      },
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
     },
   },
 });
