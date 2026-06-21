@@ -34,7 +34,9 @@ const corsOptions = {
     process.env.BETTER_AUTH_URL,
     process.env.FRONTEND_URL,
     "http://localhost:3000",
-  ] as string[],
+    "https://receipt-iq-frontend.vercel.app",
+    "https://receipt-iq-backend.vercel.app"
+  ].filter(Boolean) as string[],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],

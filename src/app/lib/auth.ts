@@ -183,7 +183,9 @@ export const getAuth = async () => {
     process.env.BETTER_AUTH_URL || "http://localhost:5000",
     process.env.FRONTEND_URL || "http://localhost:3000",
     "http://localhost:3000",
-  ],
+    "https://receipt-iq-frontend.vercel.app",
+    "https://receipt-iq-backend.vercel.app"
+  ].filter(Boolean),
   advanced: {
     disableCSRFCheck: true,
     useSecureCookies: true,
